@@ -1,8 +1,8 @@
 {
 	"name": "NostrChat",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"author": "MediaWiki Nostr Extensions",
-	"url": "https://github.com/Hitchwiki/NostrChat",
+	"url": "https://github.com/Hitchwiki/NostrChat
 	"descriptionmsg": "nostrchat-desc",
 	"license-name": "MIT",
 	"type": "other",
@@ -52,7 +52,11 @@
 			"styles": [
 				"resources/ext.nostrChat.css"
 			],
-			"dependencies": []
+			"dependencies": [
+				"oojs-ui-core",
+				"oojs-ui-windows",
+				"oojs-ui-widgets"
+			]
 		}
 	},
 	"manifest_version": 2

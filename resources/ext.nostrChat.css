@@ -150,25 +150,48 @@
 	border-color: #202122;
 }
 
+.mw-nostr-chat-close {
+	width: 24px;
+	height: 24px;
+	border: 1px solid #c8ccd1;
+	border-radius: 4px;
+	background: #ffffff;
+	cursor: pointer;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 18px;
+	line-height: 1;
+	color: #202122;
+	transition: all 0.2s ease;
+	padding: 0;
+}
+
+.mw-nostr-chat-close:hover {
+	background: #fee;
+	border-color: #fcc;
+	color: #c33;
+}
+
 /* Messages area */
 .mw-nostr-chat-messages {
 	flex: 1;
 	overflow-y: auto;
 	overflow-x: hidden;
-	padding: 8px;
+	padding: 4px;
 	display: flex;
 	flex-direction: column;
-	gap: 4px;
+	gap: 2px;
 	max-height: 400px;
 	background: #ffffff;
 }
 
 .mw-nostr-message {
-	padding: 6px 8px;
+	padding: 4px 6px;
 	background: linear-gradient(to bottom, #f8f9fa 0%, #eaecf0 100%);
 	border-radius: 4px;
 	font-size: 13px;
-	line-height: 1.5;
+	line-height: 1.4;
 	word-wrap: break-word;
 	word-break: break-word;
 	border-left: 3px solid transparent;
@@ -181,9 +204,9 @@
 }
 
 .mw-nostr-message-new-user {
-	margin-top: 8px;
+	margin-top: 4px;
 	border-top: 1px solid #eaecf0;
-	padding-top: 8px;
+	padding-top: 4px;
 }
 
 .mw-nostr-message-time {
@@ -206,6 +229,22 @@
 .mw-nostr-message-content {
 	color: #202122;
 	display: inline;
+}
+
+.mw-nostr-message-link {
+	color: #0645ad;
+	text-decoration: none;
+	border-bottom: 1px solid transparent;
+	transition: border-color 0.2s ease;
+}
+
+.mw-nostr-message-link:hover {
+	text-decoration: underline;
+	border-bottom-color: #0645ad;
+}
+
+.mw-nostr-message-link:visited {
+	color: #0b0080;
 }
 
 
@@ -424,8 +463,8 @@
 /* Date separator */
 .mw-nostr-date-separator {
 	text-align: center;
-	padding: 8px 0;
-	margin: 8px 0;
+	padding: 4px 0;
+	margin: 4px 0;
 	position: relative;
 }
 
