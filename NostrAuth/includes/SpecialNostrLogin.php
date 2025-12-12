@@ -9,8 +9,7 @@
 namespace NostrAuth;
 
 use SpecialPage;
-use Html;
-use MediaWiki\MediaWikiServices;
+use MediaWiki\Html\Html;
 
 class SpecialNostrLogin extends SpecialPage {
 	public function __construct() {
@@ -60,7 +59,7 @@ class SpecialNostrLogin extends SpecialPage {
 		] );
 		$form .= Html::hidden( 'action', 'login' );
 		$form .= Html::hidden( 'token', $this->getUser()->getEditToken() );
-		$form .= Html::hidden( 'npub', '', [ 'id' => 'nostr-npub' ] );
+		$form .= Html::hidden( 'pubkey', '', [ 'id' => 'nostr-pubkey' ] );
 		$form .= Html::hidden( 'challenge', '', [ 'id' => 'nostr-challenge' ] );
 		$form .= Html::hidden( 'signature', '', [ 'id' => 'nostr-signature' ] );
 		$form .= Html::hidden( 'signedEvent', '', [ 'id' => 'nostr-signed-event' ] );
@@ -78,11 +77,11 @@ class SpecialNostrLogin extends SpecialPage {
 	 */
 	private function handleLogin() {
 		$request = $this->getRequest();
-		$npub = $request->getVal( 'npub' );
+		$pubkey = $request->getVal( 'pubkey' );
 		$challenge = $request->getVal( 'challenge' );
 		$signedEvent = $request->getVal( 'signedEvent' );
 
-		if ( !$npub || !$challenge || !$signedEvent ) {
+		if ( !$pubkey || !$challenge || !$signedEvent ) {
 			$this->getOutput()->addWikiTextAsInterface( 'Missing authentication data.' );
 			return;
 		}
@@ -94,7 +93,7 @@ class SpecialNostrLogin extends SpecialPage {
 		}
 
 		$authProvider = new AuthProvider();
-		$result = $authProvider->authenticate( $npub, $challenge, $signedEvent );
+		$result = $authProvider->authenticate( $pubkey, $challenge, $signedEvent );
 
 		if ( $result['success'] ) {
 			// Login successful

@@ -4,12 +4,22 @@
 			"MediaWiki Nostr Extensions"
 		]
 	},
+	"prefs-nostr": "Nostr",
+	"prefs-nostr-identity": "Identity",
 	"nostrauth-desc": "Allow users to login with Nostr NIP-07 browser extension",
+	"nostrlogin": "Login with Nostr",
 	"nostrauth-login-title": "Login with Nostr",
 	"nostrauth-login-instructions": "Click the button below to login using your Nostr browser extension.",
 	"nostrauth-login-button": "Login with Nostr",
-	"nostrauth-npub-label": "Nostr Public Key (npub)",
-	"nostrauth-npub-help": "Your Nostr public key in bech32 format (npub1...). This will be used for authentication.",
-	"nostrauth-npub-invalid": "Invalid npub format. Must start with 'npub1' followed by 58 characters."
+	"nostrauth-pubkey-label": "Nostr Public Key",
+	"nostrauth-pubkey-help": "Your Nostr public key. You can paste the 64-character hex pubkey (from a NIP-07 extension) or an npub1... bech32 key.",
+	"nostrauth-pubkey-invalid": "Invalid Nostr public key format. Expected 64 hex characters or an npub1... bech32 key.",
+	"nostrauth-import-pubkey-button": "Import from NIP-07 extension",
+	"nostrauth-importing": "Importing...",
+	"nostrauth-import-success": "✓ Imported",
+	"nostrauth-import-failed": "Failed to get public key from Nostr extension",
+	"nostrauth-import-invalid": "Invalid public key format from extension",
+	"nostrauth-import-error": "Import failed",
+	"nostrauth-extension-detected": "(NIP-07 extension detected)"
 }
 

@@ -29,19 +29,59 @@
 		"NostrLogin": "NostrAuth\\SpecialNostrLogin"
 	},
 	"Hooks": {
-		"GetPreferences": "NostrAuth\\Hooks::onGetPreferences"
+		"GetPreferences": "prefs",
+		"BeforePageDisplay": "prefsDisplay"
+	},
+	"HookHandlers": {
+		"prefs": {
+			"class": "NostrAuth\\Hooks"
+		},
+		"prefsDisplay": {
+			"class": "NostrAuth\\Hooks"
+		}
+	},
+	"ExtensionMessagesFiles": {
+		"NostrAuthAlias": "NostrAuth.alias.php"
 	},
 	"MessagesDirs": {
 		"NostrAuth": [
 			"i18n"
 		]
 	},
+	"ResourceFileModulePaths": {
+		"localBasePath": "",
+		"remoteExtPath": "NostrAuth"
+	},
 	"ResourceModules": {
+		"ext.nostrAuth.bech32": {
+			"scripts": [
+				"resources/lib/bech32.bundle.js"
+			]
+		},
 		"ext.nostrAuth": {
 			"scripts": [
 				"resources/ext.nostrAuth.js"
 			],
 			"dependencies": []
+		},
+		"ext.nostrAuth.prefs": {
+			"scripts": [
+				"resources/ext.nostrAuth.prefs.js"
+			],
+			"dependencies": [
+				"ext.nostrAuth.bech32",
+				"mediawiki.api",
+				"mediawiki.htmlform"
+			],
+			"messages": [
+				"nostrauth-import-pubkey-button",
+				"nostrauth-importing",
+				"nostrauth-import-success",
+				"nostrauth-import-failed",
+				"nostrauth-import-invalid",
+				"nostrauth-import-error",
+				"nostrauth-extension-detected"
+			]
 		}
 	},
 	"manifest_version": 2

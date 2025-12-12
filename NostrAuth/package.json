@@ -1,0 +1,17 @@
+{
+	"name": "nostrauth",
+	"private": true,
+	"scripts": {
+		"build": "rollup -c",
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"dependencies": {
+		"@scure/base": "^1.1.1"
+	},
+	"devDependencies": {
+		"@rollup/plugin-commonjs": "^28.0.3",
+		"@rollup/plugin-node-resolve": "^15.2.3",
+		"rollup": "^4.22.4"
+	}
+}
+

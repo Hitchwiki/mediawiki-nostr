@@ -4,20 +4,25 @@
 ( function () {
 	'use strict';
 
-	// Check if Nostr extension is available
-	if ( typeof window.nostr === 'undefined' ) {
-		document.getElementById( 'nostr-login-button' ).disabled = true;
-		document.getElementById( 'nostr-login-button' ).textContent = 'Nostr extension not found';
+	const loginButton = document.getElementById( 'nostr-login-button' );
+	if ( !loginButton ) {
 		return;
 	}
 
-	document.getElementById( 'nostr-login-button' ).addEventListener( 'click', async function ( e ) {
+	// Check if Nostr extension is available
+	if ( typeof window.nostr === 'undefined' ) {
+		loginButton.disabled = true;
+		loginButton.textContent = 'Nostr extension not found';
+		return;
+	}
+
+	loginButton.addEventListener( 'click', async function ( e ) {
 		e.preventDefault();
 
 		try {
-			// Get public key
-			const npub = await window.nostr.getPublicKey();
-			if ( !npub ) {
+			// NIP-07 getPublicKey returns hex pubkey (x-only, 32 bytes => 64 hex chars)
+			const pubkey = await window.nostr.getPublicKey();
+			if ( !pubkey ) {
 				alert( 'Failed to get public key from Nostr extension' );
 				return;
 			}
@@ -41,7 +46,7 @@
 			}
 
 			// Set form values
-			document.getElementById( 'nostr-npub' ).value = npub;
+			document.getElementById( 'nostr-pubkey' ).value = pubkey;
 			document.getElementById( 'nostr-challenge' ).value = challenge;
 			document.getElementById( 'nostr-signed-event' ).value = JSON.stringify( signedEvent );
 

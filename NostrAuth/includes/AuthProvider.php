@@ -23,32 +23,45 @@ class AuthProvider {
 	/**
 	 * Authenticate a user with Nostr
 	 *
-	 * @param string $npub Public key (bech32)
+	 * @param string $pubkey Public key (hex from NIP-07, or npub bech32)
 	 * @param string $challenge Challenge string
 	 * @param string $signedEventJson Signed event JSON
 	 * @return array ['success' => bool, 'user' => User|null, 'error' => string|null]
 	 */
-	public function authenticate( string $npub, string $challenge, string $signedEventJson ): array {
+	public function authenticate( string $pubkey, string $challenge, string $signedEventJson ): array {
 		// Load utilities
 		require_once __DIR__ . '/../../NostrUtils/includes/NostrUtils.php';
 		$utils = new \NostrUtils\NostrUtils();
 
-		// Verify npub format
-		if ( !preg_match( '/^npub1[0-9a-z]{58}$/i', $npub ) ) {
+		// Normalize pubkey to x-only hex (32 bytes)
+		$pubkeyHex = $utils->normalizePubkeyToHex( $pubkey );
+		if ( !$pubkeyHex ) {
 			return [
 				'success' => false,
 				'user' => null,
-				'error' => 'Invalid npub format'
+				'error' => 'Invalid public key format'
 			];
 		}
 
 		// Parse and verify signed event
 		$signedEvent = json_decode( $signedEventJson, true );
-		if ( !$signedEvent || !isset( $signedEvent['id'], $signedEvent['pubkey'], $signedEvent['sig'] ) ) {
+		if (
+			!$signedEvent ||
+			!isset( $signedEvent['id'], $signedEvent['pubkey'], $signedEvent['sig'], $signedEvent['kind'], $signedEvent['created_at'], $signedEvent['content'], $signedEvent['tags'] )
+		) {
 			return [
 				'success' => false,
 				'user' => null,
 				'error' => 'Invalid signed event'
+			];
+		}
+
+		// Basic sanity checks
+		if ( !is_array( $signedEvent['tags'] ) ) {
+			return [
+				'success' => false,
+				'user' => null,
+				'error' => 'Invalid signed event tags'
 			];
 		}
 
@@ -70,9 +83,9 @@ class AuthProvider {
 			];
 		}
 
-		// Verify pubkey matches npub
-		$pubkeyHex = $utils->npubToHex( $npub );
-		if ( !$pubkeyHex || strtolower( $pubkeyHex ) !== strtolower( $signedEvent['pubkey'] ) ) {
+		// Verify pubkey matches signed event pubkey
+		$signedPubkeyHex = $utils->normalizePubkeyToHex( (string)$signedEvent['pubkey'] );
+		if ( !$signedPubkeyHex || strtolower( $pubkeyHex ) !== strtolower( $signedPubkeyHex ) ) {
 			return [
 				'success' => false,
 				'user' => null,
@@ -84,7 +97,7 @@ class AuthProvider {
 		global $wgNostrAllowedNIP5Domains;
 		if ( $wgNostrAllowedNIP5Domains !== null && is_array( $wgNostrAllowedNIP5Domains ) ) {
 			$verifier = new NIP5Verifier();
-			$nip5Result = $verifier->verifyNIP5( $npub, $wgNostrAllowedNIP5Domains );
+			$nip5Result = $verifier->verifyNIP5( $pubkeyHex, $wgNostrAllowedNIP5Domains );
 			if ( !$nip5Result['verified'] ) {
 				return [
 					'success' => false,
@@ -95,7 +108,7 @@ class AuthProvider {
 		}
 
 		// Find or create user
-		$user = $this->findOrCreateUser( $npub );
+		$user = $this->findOrCreateUser( $pubkeyHex );
 
 		if ( !$user ) {
 			return [
@@ -105,8 +118,8 @@ class AuthProvider {
 			];
 		}
 
-		// Store npub in user preferences
-		$user->setOption( 'nostr-npub', $npub );
+		// Store canonical x-only pubkey hex in user preferences
+		$user->setOption( 'nostr-pubkey', strtolower( $pubkeyHex ) );
 		$user->saveSettings();
 
 		return [
@@ -117,19 +130,19 @@ class AuthProvider {
 	}
 
 	/**
-	 * Find existing user by npub or create new one
+	 * Find existing user by pubkey hex or create new one
 	 *
-	 * @param string $npub Public key
+	 * @param string $pubkeyHex Public key (x-only 32 bytes hex)
 	 * @return User|null
 	 */
-	private function findOrCreateUser( string $npub ): ?User {
+	private function findOrCreateUser( string $pubkeyHex ): ?User {
 		$dbr = wfGetDB( DB_REPLICA );
 
-		// Try to find existing user with this npub
+		// Try to find existing user with this pubkey
 		$userId = $dbr->selectField(
 			'user_properties',
 			'up_user',
-			[ 'up_property' => 'nostr-npub', 'up_value' => $npub ],
+			[ 'up_property' => 'nostr-pubkey', 'up_value' => strtolower( $pubkeyHex ) ],
 			__METHOD__
 		);
 
@@ -138,11 +151,8 @@ class AuthProvider {
 		}
 
 		// Create new user
-		// Generate username from npub (first 16 chars of hex)
-		require_once __DIR__ . '/../../NostrUtils/includes/NostrUtils.php';
-		$utils = new \NostrUtils\NostrUtils();
-		$hex = $utils->npubToHex( $npub );
-		$username = 'Nostr_' . substr( $hex, 0, 16 );
+		// Generate username from pubkey (first 16 chars of hex)
+		$username = 'Nostr_' . substr( strtolower( $pubkeyHex ), 0, 16 );
 
 		// Check if username exists, append number if needed
 		$originalUsername = $username;
