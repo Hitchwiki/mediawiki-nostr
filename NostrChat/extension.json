@@ -1,0 +1,69 @@
+{
+	"name": "NostrChat",
+																																																																																																																																																																																																																																																																																																																																																																																																																															"version": "0.0.2",
+	"author": "MediaWiki Nostr Extensions",
+	"url": "https://github.com/hitchwiki/NostrChat",
+	"descriptionmsg": "nostrchat-desc",
+	"license-name": "MIT",
+	"type": "other",
+	"requires": {
+		"MediaWiki": ">= 1.42.0"
+	},
+	"config": {
+		"NostrChatEnabled": {
+			"value": true,
+			"description": "Enable Nostr chat sidebar widget"
+		},
+		"NostrChatChannel": {
+			"value": "hitchwiki",
+			"description": "Channel hashtag for filtering messages"
+		},
+		"NostrChatRelays": {
+			"value": null,
+			"description": "Array of Nostr relay URLs (must be defined in LocalSettings.php)"
+		}
+	},
+	"AutoloadClasses": {
+		"NostrChat\\Hooks": "includes/Hooks.php",
+		"NostrChat\\NostrChat": "includes/NostrChat.php"
+	},
+	"Hooks": {
+		"BeforePageDisplay": "main"
+	},
+	"HookHandlers": {
+		"main": {
+			"class": "NostrChat\\Hooks"
+		}
+	},
+	"MessagesDirs": {
+		"NostrChat": [
+			"i18n"
+		]
+	},
+	"ResourceFileModulePaths": {
+		"localBasePath": "",
+		"remoteExtPath": "NostrChat"
+	},
+	"ResourceModules": {
+		"ext.nostrChat.libs": {
+			"scripts": [
+				"resources/lib/nostr-libs.bundle.js"
+			]
+		},
+		"ext.nostrChat": {
+			"scripts": [
+				"resources/ext.nostrChat.js"
+			],
+			"styles": [
+				"resources/ext.nostrChat.css"
+			],
+			"dependencies": [
+				"ext.nostrChat.libs",
+				"oojs-ui-core",
+				"oojs-ui-windows",
+				"oojs-ui-widgets"
+			]
+		}
+	},
+	"manifest_version": 2
+}
