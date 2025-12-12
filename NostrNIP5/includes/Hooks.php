@@ -32,9 +32,18 @@ class Hooks implements BeforeInitializeHook {
 		}
 
 		// Check if this is a .well-known/nostr.json request
-		$path = $request->getRequestURL();
-		if ( strpos( $path, '/.well-known/nostr.json' ) !== false || 
-		     strpos( $path, '.well-known/nostr.json' ) !== false ) {
+		// NOTE: Under Apache mod_rewrite, REQUEST_URI may already be rewritten to /index.php.
+		// Prefer REDIRECT_URL (original path) when available.
+		$path =
+			( is_string( $_SERVER['REDIRECT_URL'] ?? null ) ? $_SERVER['REDIRECT_URL'] : null ) ??
+			( is_string( $_SERVER['REQUEST_URI'] ?? null ) ? parse_url( $_SERVER['REQUEST_URI'], PHP_URL_PATH ) : null ) ??
+			$request->getRequestURL();
+
+		if ( is_string( $path ) && (
+			$path === '/.well-known/nostr.json' ||
+			strpos( $path, '/.well-known/nostr.json' ) === 0 ||
+			strpos( $path, '.well-known/nostr.json' ) !== false
+		) ) {
 			$handler = new WellKnownHandler();
 			$handler->handleRequest( $request );
 			return false; // Stop further processing

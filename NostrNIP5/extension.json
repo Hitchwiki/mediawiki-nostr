@@ -18,11 +18,22 @@
 	"AutoloadClasses": {
 		"NostrNIP5\\Hooks": "includes/Hooks.php",
 		"NostrNIP5\\WellKnownHandler": "includes/WellKnownHandler.php",
-		"NostrNIP5\\UserPreferences": "includes/UserPreferences.php"
+		"NostrNIP5\\UserPreferences": "includes/UserPreferences.php",
+		"NostrNIP5\\SpecialNostrNIP5": "includes/SpecialNostrNIP5.php"
+	},
+	"SpecialPages": {
+		"NostrNIP5": "NostrNIP5\\SpecialNostrNIP5"
 	},
 	"Hooks": {
-		"BeforeInitialize": "NostrNIP5\\Hooks::onBeforeInitialize",
-		"GetPreferences": "NostrNIP5\\UserPreferences::onGetPreferences"
+		"GetPreferences": "prefs"
+	},
+	"HookHandlers": {
+		"prefs": {
+			"class": "NostrNIP5\\UserPreferences"
+		}
+	},
+	"ExtensionMessagesFiles": {
+		"NostrNIP5Alias": "NostrNIP5.alias.php"
 	},
 	"MessagesDirs": {
 		"NostrNIP5": [

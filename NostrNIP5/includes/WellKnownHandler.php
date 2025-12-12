@@ -11,89 +11,62 @@ namespace NostrNIP5;
 use WebRequest;
 use User;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\User\UserOptionsLookup;
 
 class WellKnownHandler {
 	/**
-	 * Handle the .well-known/nostr.json request
+	 * Build the response for the .well-known/nostr.json request.
 	 *
 	 * @param WebRequest $request
+	 * @return array{status:int,body:array}
 	 */
-	public function handleRequest( WebRequest $request ) {
+	public function getResponse( WebRequest $request ): array {
 		$name = $request->getVal( 'name' );
 		
 		if ( !$name ) {
-			$this->sendError( 400, 'Missing name parameter' );
-			return;
+			return [ 'status' => 400, 'body' => [ 'error' => 'Missing name parameter' ] ];
 		}
 
 		// Sanitize username
 		$name = preg_replace( '/[^a-zA-Z0-9_-]/', '', $name );
 		if ( empty( $name ) || strlen( $name ) > 50 ) {
-			$this->sendError( 400, 'Invalid name parameter' );
-			return;
+			return [ 'status' => 400, 'body' => [ 'error' => 'Invalid name parameter' ] ];
 		}
 
 		// Find user
 		$user = User::newFromName( $name );
 		if ( !$user || !$user->getId() ) {
-			$this->sendError( 404, 'User not found' );
-			return;
+			// Avoid user enumeration: return empty names object
+			return [ 'status' => 200, 'body' => [ 'names' => [] ] ];
 		}
 
-		// Get npub from user preferences
-		$npub = $user->getOption( 'nostr-npub' );
-		if ( !$npub ) {
-			// Return empty names object if no npub
-			$this->sendResponse( [ 'names' => [] ] );
-			return;
+		// Get pubkey from user preferences (prefer canonical hex, fallback to old npub field)
+		$userOptionsLookup = MediaWikiServices::getInstance()->getUserOptionsLookup();
+		$pubkey = $userOptionsLookup->getOption( $user, 'nostr-pubkey' ) 
+			?: $userOptionsLookup->getOption( $user, 'nostr-npub' );
+		if ( !$pubkey ) {
+			// Return empty names object if no pubkey
+			return [ 'status' => 200, 'body' => [ 'names' => [] ] ];
 		}
 
-		// Validate npub format
-		if ( !preg_match( '/^npub1[0-9a-z]{58}$/i', $npub ) ) {
-			$this->sendResponse( [ 'names' => [] ] );
-			return;
-		}
-
-		// Convert npub to hex
+		// Normalize to hex
 		require_once __DIR__ . '/../../NostrUtils/includes/NostrUtils.php';
 		$utils = new \NostrUtils\NostrUtils();
-		$hex = $utils->npubToHex( $npub );
+		$hex = $utils->normalizePubkeyToHex( $pubkey );
 
 		if ( !$hex ) {
-			$this->sendResponse( [ 'names' => [] ] );
-			return;
+			return [ 'status' => 200, 'body' => [ 'names' => [] ] ];
 		}
 
 		// Return NIP-5 format response
-		$this->sendResponse( [
-			'names' => [
-				$name => $hex
+		return [
+			'status' => 200,
+			'body' => [
+				'names' => [
+					$name => strtolower( $hex )
+				]
 			]
-		] );
-	}
-
-	/**
-	 * Send JSON response
-	 *
-	 * @param array $data Response data
-	 */
-	private function sendResponse( array $data ) {
-		header( 'Content-Type: application/json' );
-		echo json_encode( $data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES );
-		exit;
-	}
-
-	/**
-	 * Send error response
-	 *
-	 * @param int $code HTTP status code
-	 * @param string $message Error message
-	 */
-	private function sendError( int $code, string $message ) {
-		http_response_code( $code );
-		header( 'Content-Type: application/json' );
-		echo json_encode( [ 'error' => $message ], JSON_PRETTY_PRINT );
-		exit;
+		];
 	}
 }
 

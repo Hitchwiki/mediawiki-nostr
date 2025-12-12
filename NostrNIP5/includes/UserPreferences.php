@@ -8,46 +8,59 @@
 
 namespace NostrNIP5;
 
-use MediaWiki\Hook\GetPreferencesHook;
+use MediaWiki\Preferences\Hook\GetPreferencesHook;
 use User;
 
 class UserPreferences implements GetPreferencesHook {
 	/**
-	 * Add npub preference field
+	 * Add Nostr pubkey preference field (hex or npub).
+	 * If another extension already added the preference (e.g. NostrAuth), do not override it.
 	 *
 	 * @param User $user
 	 * @param array &$preferences
 	 * @return bool|void
 	 */
 	public function onGetPreferences( $user, &$preferences ) {
-		$preferences['nostr-npub'] = [
+		if ( isset( $preferences['nostr-pubkey'] ) ) {
+			return;
+		}
+
+		$preferences['nostr-pubkey'] = [
 			'type' => 'text',
-			'section' => 'personal/info',
-			'label-message' => 'nostrnip5-npub-label',
-			'help-message' => 'nostrnip5-npub-help',
-			'validation-callback' => [ $this, 'validateNpub' ]
+			'section' => 'nostr/identity',
+			'label-message' => 'nostrnip5-pubkey-label',
+			'help-message' => 'nostrnip5-pubkey-help',
+			'validation-callback' => [ $this, 'validatePubkey' ]
 		];
 	}
 
 	/**
-	 * Validate npub format
+	 * Validate pubkey format (hex or npub)
 	 *
 	 * @param string $value
 	 * @param array $alldata
 	 * @param User $user
 	 * @return bool|string True on success, error message on failure
 	 */
-	public function validateNpub( $value, $alldata, $user ) {
+	public function validatePubkey( $value, $alldata, $user ) {
 		if ( empty( $value ) ) {
 			return true; // Optional field
 		}
 
-		// Validate npub format: npub1 followed by 58 characters
-		if ( !preg_match( '/^npub1[0-9a-z]{58}$/i', $value ) ) {
-			return wfMessage( 'nostrnip5-npub-invalid' )->text();
+		// Accept 64 hex characters (NIP-07 getPublicKey) or npub bech32
+		if ( preg_match( '/^[0-9a-f]{64}$/i', $value ) ) {
+			return true;
 		}
 
-		return true;
+		if ( preg_match( '/^npub1[0-9a-z]+$/i', $value ) ) {
+			require_once __DIR__ . '/../../NostrUtils/includes/NostrUtils.php';
+			$utils = new \NostrUtils\NostrUtils();
+			if ( $utils->npubToHex( $value ) !== null ) {
+				return true;
+			}
+		}
+
+		return wfMessage( 'nostrnip5-pubkey-invalid' )->text();
 	}
 }
 
